@@ -14,6 +14,10 @@ import {useToast} from "@/hooks/use-toast";
 const apiKeyLocalStorageKey = 'openWeatherApiKey';
 
 export default function Home() {
+  const [temperatureInput, setTemperatureInput] = useState<string>('');
+  const [humidityInput, setHumidityInput] = useState<string>('');
+  const [buzzerTimerInput, setBuzzerTimerInput] = useState<string>('');
+
   const [temperature, setTemperature] = useState<number | null>(null);
   const [humidity, setHumidity] = useState<number | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
@@ -69,6 +73,30 @@ export default function Home() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
+  const handleGetSensorData = () => {
+    const temp = parseFloat(temperatureInput);
+    const hum = parseFloat(humidityInput);
+    const timer = parseInt(buzzerTimerInput, 10);
+
+    if (!isNaN(temp)) {
+      setTemperature(temp);
+    } else {
+      setTemperature(null);
+    }
+
+    if (!isNaN(hum)) {
+      setHumidity(hum);
+    } else {
+      setHumidity(null);
+    }
+
+    if (!isNaN(timer)) {
+      setBuzzerTimer(timer);
+    } else {
+      setBuzzerTimer(0);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background antialiased">
       <Toaster/>
@@ -80,18 +108,39 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle>Sensor Data</CardTitle>
-              <CardDescription>Current temperature and humidity readings.</CardDescription>
+              <CardDescription>Enter current temperature and humidity readings.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p className="flex items-center space-x-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="temperature">Temperature (°C)</Label>
+                  <Input
+                    id="temperature"
+                    type="number"
+                    placeholder="Enter temperature"
+                    value={temperatureInput}
+                    onChange={(e) => setTemperatureInput(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="humidity">Humidity (%)</Label>
+                  <Input
+                    id="humidity"
+                    type="number"
+                    placeholder="Enter humidity"
+                    value={humidityInput}
+                    onChange={(e) => setHumidityInput(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
                   <Icons.thermometer className="h-4 w-4 text-accent"/>
                   <span>Temperature: {temperature !== null ? `${temperature}°C` : 'N/A'}</span>
-                </p>
-                <p className="flex items-center space-x-2">
+                </div>
+                <div className="flex items-center space-x-2">
                   <Icons.humidity className="h-4 w-4 text-accent"/>
                   <span>Humidity: {humidity !== null ? `${humidity}%` : 'N/A'}</span>
-                </p>
+                </div>
+                <Button onClick={handleGetSensorData}>Get Sensor Data</Button>
               </div>
             </CardContent>
           </Card>
@@ -133,6 +182,16 @@ export default function Home() {
               <CardDescription>Set a timer for the buzzer to turn on and off.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="buzzer-timer-input">Timer (hh:mm)</Label>
+                <Input
+                  id="buzzer-timer-input"
+                  type="number"
+                  placeholder="Enter timer in minutes"
+                  value={buzzerTimerInput}
+                  onChange={(e) => setBuzzerTimerInput(e.target.value)}
+                />
+              </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="buzzer-timer">Timer: {formatTime(buzzerTimer)}</Label>
               </div>
@@ -144,6 +203,7 @@ export default function Home() {
                 value={[buzzerTimer]}
                 onValueChange={(value) => setBuzzerTimer(value[0])}
               />
+              <Button onClick={handleGetSensorData}>Set Buzzer Timer</Button>
             </CardContent>
           </Card>
         </section>
