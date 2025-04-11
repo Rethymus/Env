@@ -13,7 +13,7 @@ import {fetchLocalData} from "@/services/weather";
 import {Input} from "@/components/ui/input";
 
 const apiKeyLocalStorageKey = 'openWeatherApiKey';
-const LOCAL_API_URL = 'http://localhost:3001/api/data';
+const LOCAL_API_URL = 'http://localhost:8080/temp';
 
 export default function Home() {
   const [temperature, setTemperature] = useState<number | null>(null);

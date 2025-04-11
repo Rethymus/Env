@@ -54,7 +54,7 @@ export async function getWeather(city: string, apiKey: string): Promise<Weather>
 
 export async function fetchLocalData() {
   try {
-    const response = await fetch('http://localhost:3001/api/data');
+    const response = await fetch('http://localhost:8080/temp');
     const data = await response.json();
     return data;
   } catch (error) {
