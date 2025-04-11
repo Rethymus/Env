@@ -3,21 +3,19 @@
 import React, {useState, useEffect} from 'react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {getWeather, Weather} from "@/services/weather";
-import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Slider} from "@/components/ui/slider";
 import {Icons} from "@/components/icons";
 import {Toaster} from "@/components/ui/toaster";
 import {useToast} from "@/hooks/use-toast";
+import {fetchLocalData} from "@/services/weather";
+import {Input} from "@/components/ui/input";
 
 const apiKeyLocalStorageKey = 'openWeatherApiKey';
+const LOCAL_API_URL = 'http://localhost:3001/api/data';
 
 export default function Home() {
-  const [temperatureInput, setTemperatureInput] = useState<string>('');
-  const [humidityInput, setHumidityInput] = useState<string>('');
-  const [buzzerTimerInput, setBuzzerTimerInput] = useState<string>('');
-
   const [temperature, setTemperature] = useState<number | null>(null);
   const [humidity, setHumidity] = useState<number | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
@@ -73,27 +71,48 @@ export default function Home() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
-  const handleGetSensorData = () => {
-    const temp = parseFloat(temperatureInput);
-    const hum = parseFloat(humidityInput);
-    const timer = parseInt(buzzerTimerInput, 10);
-
-    if (!isNaN(temp)) {
-      setTemperature(temp);
-    } else {
-      setTemperature(null);
+  const handleGetSensorData = async () => {
+    try {
+      const localData = await fetchLocalData();
+      if (localData) {
+        setTemperature(localData.temperature);
+        setHumidity(localData.humidity);
+      } else {
+        toast({
+          title: "Failed to fetch sensor data",
+          description: "Could not retrieve sensor data from local server.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch local data", error);
+      toast({
+        title: "Failed to fetch sensor data",
+        description: "Please ensure the local server is running and accessible.",
+        variant: "destructive",
+      });
     }
+  };
 
-    if (!isNaN(hum)) {
-      setHumidity(hum);
-    } else {
-      setHumidity(null);
-    }
-
-    if (!isNaN(timer)) {
-      setBuzzerTimer(timer);
-    } else {
-      setBuzzerTimer(0);
+  const handleGetBuzzerTimer = async () => {
+    try {
+      const localData = await fetchLocalData();
+      if (localData) {
+        setBuzzerTimer(localData.buzzerTimer);
+      } else {
+        toast({
+          title: "Failed to fetch buzzer timer",
+          description: "Could not retrieve buzzer timer from local server.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch buzzer timer", error);
+      toast({
+        title: "Failed to fetch buzzer timer",
+        description: "Please ensure the local server is running and accessible.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -108,30 +127,10 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle>Sensor Data</CardTitle>
-              <CardDescription>Enter current temperature and humidity readings.</CardDescription>
+              <CardDescription>Current temperature and humidity readings.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="temperature">Temperature (°C)</Label>
-                  <Input
-                    id="temperature"
-                    type="number"
-                    placeholder="Enter temperature"
-                    value={temperatureInput}
-                    onChange={(e) => setTemperatureInput(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="humidity">Humidity (%)</Label>
-                  <Input
-                    id="humidity"
-                    type="number"
-                    placeholder="Enter humidity"
-                    value={humidityInput}
-                    onChange={(e) => setHumidityInput(e.target.value)}
-                  />
-                </div>
                 <div className="flex items-center space-x-2">
                   <Icons.thermometer className="h-4 w-4 text-accent"/>
                   <span>Temperature: {temperature !== null ? `${temperature}°C` : 'N/A'}</span>
@@ -182,16 +181,6 @@ export default function Home() {
               <CardDescription>Set a timer for the buzzer to turn on and off.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="buzzer-timer-input">Timer (hh:mm)</Label>
-                <Input
-                  id="buzzer-timer-input"
-                  type="number"
-                  placeholder="Enter timer in minutes"
-                  value={buzzerTimerInput}
-                  onChange={(e) => setBuzzerTimerInput(e.target.value)}
-                />
-              </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="buzzer-timer">Timer: {formatTime(buzzerTimer)}</Label>
               </div>
@@ -203,7 +192,7 @@ export default function Home() {
                 value={[buzzerTimer]}
                 onValueChange={(value) => setBuzzerTimer(value[0])}
               />
-              <Button onClick={handleGetSensorData}>Set Buzzer Timer</Button>
+              <Button onClick={handleGetBuzzerTimer}>Set Buzzer Timer</Button>
             </CardContent>
           </Card>
         </section>

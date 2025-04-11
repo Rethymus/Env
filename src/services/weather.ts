@@ -1,3 +1,4 @@
+'use server';
 /**
  * Represents weather information, including temperature and conditions.
  */
@@ -61,3 +62,4 @@ export async function fetchLocalData() {
     return null;
   }
 }
+
